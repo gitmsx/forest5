@@ -17,6 +17,7 @@ public class SimpleGroundedController : MonoBehaviour
     public bool IsGrounded => m_Rigidbody.IsTouching(ContactFilter);
 
     private bool FaceRight = true;
+    private Animator animHero;
 
 
     private void flip()
@@ -28,13 +29,32 @@ public class SimpleGroundedController : MonoBehaviour
     private bool LeftArrow = false;
     private bool RightArrow = false;
 
+    private SpriteRenderer sprite;
 
 
+    private void Awake()
+    {
+        animHero=GetComponent<Animator>();  
 
+    }
 
     void Start()
     {
         m_Rigidbody = GetComponent<Rigidbody2D>();
+        sprite = GetComponentInChildren<SpriteRenderer>();
+    }
+
+    public enum States
+    {
+        Idle,Run,Jump
+    }
+
+    private States State
+    {
+        get { return (States)animHero.GetInteger("StateHero"); }
+        set { animHero.SetInteger("StateHero", (int) value); }
+
+
     }
 
 
@@ -45,19 +65,21 @@ public class SimpleGroundedController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
             m_ShouldJump = true;
 
-
         LeftArrow = Input.GetKey(KeyCode.LeftArrow);
         RightArrow = Input.GetKey(KeyCode.RightArrow);
-        
         m_SideSpeed = ( LeftArrow  ? -SideSpeed : 0f) + (RightArrow ? SideSpeed : 0f);
 
-        
 
-                if (LeftArrow  && (FaceRight == true))
+        if (LeftArrow || RightArrow) State = States.Run;
+        else if (IsGrounded) State = States.Idle;
+        else State = States.Jump;
+
+
+        if (LeftArrow && (FaceRight == true))
                 {
                     flip();
                 }
-                else if (RightArrow  && (FaceRight != true))
+        else if (RightArrow  && (FaceRight != true))
                 {
                     flip();
                 }
